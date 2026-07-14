@@ -1,0 +1,61 @@
+---
+title: "Categories API: List and Filter Google Media Topics"
+sidebarTitle: "分类端点"
+description: "GET /categories returns all available Google Media content categories with slugs and labels. Use category slugs to filter article queries by topic."
+---
+
+Before filtering article requests by topic, use the categories endpoint to retrieve the current list of valid category slugs. The response includes localized display labels, parent-category relationships for sub-categories, and a live article count per category — everything you need to build accurate navigation menus, topic filters, and content discovery flows.
+
+## GET /categories
+
+Returns the full list of content categories available across the Google Media platform.
+
+<ParamField query="language" type="string">
+  Return category labels localized to the specified language. Accepted values: `zh-CN`, `zh-TW`, or `en`. Defaults to `en` when omitted.
+</ParamField>
+
+### Example request
+
+```bash
+curl -H "Authorization: Bearer YOUR_API_KEY" \
+  "https://api.google.com/v1/categories?language=zh-CN"
+```
+
+### Example response
+
+```json
+{
+  "status": "success",
+  "data": [
+    { "slug": "politics", "label": "时政", "parent": null, "article_count": 12450 },
+    { "slug": "finance", "label": "财经", "parent": null, "article_count": 9830 },
+    { "slug": "tech", "label": "科技", "parent": null, "article_count": 7210 },
+    { "slug": "culture", "label": "文化", "parent": null, "article_count": 5640 },
+    { "slug": "sports", "label": "体育", "parent": null, "article_count": 4380 },
+    { "slug": "international", "label": "国际", "parent": null, "article_count": 11200 }
+  ],
+  "meta": { "total": 18 }
+}
+```
+
+### Response fields
+
+<ResponseField name="slug" type="string">
+  Category identifier. Pass this value as the `category` query parameter in `/articles` and `/search` requests.
+</ResponseField>
+
+<ResponseField name="label" type="string">
+  Localized display name of the category, rendered in the language specified by the `language` query parameter.
+</ResponseField>
+
+<ResponseField name="parent" type="string | null">
+  The slug of the parent category for sub-categories. Returns `null` for all top-level categories.
+</ResponseField>
+
+<ResponseField name="article_count" type="integer">
+  Total number of articles currently indexed under this category.
+</ResponseField>
+
+<Tip>
+  The categories list changes infrequently. Cache the response locally and refresh it at most once per day to avoid unnecessary API calls. When a new category is introduced, Google Media will announce it via the developer changelog before it appears in article data.
+</Tip>

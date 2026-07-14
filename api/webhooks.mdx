@@ -1,0 +1,159 @@
+---
+title: "Google Media Webhooks: Real-Time Article Notifications"
+sidebarTitle: "Webhooks"
+description: "Register a webhook to receive real-time HTTP callbacks when Google Media publishes new articles. Configure filters by category, language, or author to receive relevant events."
+---
+
+Webhooks deliver real-time push notifications to your server the moment new content is published, updated, or removed on the Google Media platform. Rather than polling the Articles API on a schedule, you register an HTTPS endpoint once and Google Media sends an HTTP POST request to it whenever a matching event occurs. Use category, language, and author filters to ensure your endpoint only receives the events that are relevant to your integration.
+
+## POST /webhooks
+
+Register a new webhook endpoint to begin receiving event notifications.
+
+<ParamField body="url" type="string" required>
+  Your publicly accessible HTTPS endpoint URL. Google Media will POST event payloads to this address. HTTP (non-TLS) URLs are not accepted.
+</ParamField>
+
+<ParamField body="events" type="array" required>
+  One or more event types to subscribe to. Accepted values:
+  - `article.published` — Fired when a new article is published.
+  - `article.updated` — Fired when an existing article is edited.
+  - `article.deleted` — Fired when an article is removed from the platform.
+</ParamField>
+
+<ParamField body="filters" type="object">
+  Optional filters to scope which events trigger a delivery to your endpoint.
+
+  <Expandable title="filters fields">
+    <ParamField body="categories" type="array">
+      List of category slugs to watch. Only events for articles in these categories will be delivered.
+    </ParamField>
+    <ParamField body="languages" type="array">
+      List of language codes (`zh-CN`, `zh-TW`, `en`). Only events for articles in these languages will be delivered.
+    </ParamField>
+    <ParamField body="authors" type="array">
+      List of author IDs. Only events for articles written by these authors will be delivered.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="secret" type="string">
+  A secret string used to generate an HMAC-SHA256 signature for each delivery. Include this to enable signature verification on your server. See [Signature Verification](#signature-verification) below.
+</ParamField>
+
+### Example request
+
+```bash
+curl -X POST \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://yourapp.com/webhooks/news",
+    "events": ["article.published"],
+    "filters": { "categories": ["finance", "international"] },
+    "secret": "your_webhook_secret"
+  }' \
+  https://api.google.com/v1/webhooks
+```
+
+### Example response
+
+```json
+{
+  "status": "success",
+  "data": {
+    "id": "wh_7xpq",
+    "url": "https://yourapp.com/webhooks/news",
+    "events": ["article.published"],
+    "filters": { "categories": ["finance", "international"] },
+    "created_at": "2024-06-15T12:00:00Z",
+    "status": "active"
+  }
+}
+```
+
+---
+
+## Webhook Payload
+
+When a subscribed event fires, Google Media sends an HTTP POST request to your registered URL with the following JSON body:
+
+```json
+{
+  "event": "article.published",
+  "timestamp": "2024-06-15T13:45:00Z",
+  "data": {
+    "id": "art_09rs",
+    "title": "新华社：最新经济数据出炉",
+    "category": { "slug": "finance" },
+    "url": "https://www.google.com/articles/art_09rs"
+  },
+  "signature": "sha256=abc123..."
+}
+```
+
+The `data` object contains a summary of the affected article. Use the `id` field to fetch full article details from [GET /articles/\{id\}](/api/articles) if your integration requires the complete body or metadata.
+
+---
+
+## Signature Verification
+
+When you provide a `secret` during registration, every delivery includes a `signature` field containing an HMAC-SHA256 digest of the raw request body. Always verify this signature before processing the payload to confirm the request originated from Google Media.
+
+<Warning>
+  Never process an incoming webhook payload without first verifying its signature. Skipping this step exposes your integration to spoofed requests that could inject arbitrary data into your system.
+</Warning>
+
+The expected signature is computed as:
+
+```
+sha256=HMAC-SHA256(secret, raw_request_body)
+```
+
+Use a constant-time comparison function when checking the digest to prevent timing attacks.
+
+<CodeGroup>
+```python Python
+import hmac
+import hashlib
+
+def verify_signature(payload_body: bytes, signature: str, secret: str) -> bool:
+    expected = hmac.new(
+        secret.encode(), payload_body, hashlib.sha256
+    ).hexdigest()
+    return hmac.compare_digest(f"sha256={expected}", signature)
+```
+
+```javascript Node.js
+const crypto = require('crypto');
+
+function verifySignature(payloadBody, signature, secret) {
+  const expected = 'sha256=' + crypto
+    .createHmac('sha256', secret)
+    .update(payloadBody)
+    .digest('hex');
+  return crypto.timingSafeEqual(
+    Buffer.from(expected),
+    Buffer.from(signature)
+  );
+}
+```
+</CodeGroup>
+
+<Note>
+  If your endpoint returns a non-2xx HTTP status code, Google Media automatically retries the delivery up to **5 times** using exponential backoff (approximately 1 min, 5 min, 30 min, 2 hr, 8 hr). If all retries fail, the webhook is marked as `failing` in the dashboard and you will receive an alert email. Ensure your endpoint responds within **10 seconds** to avoid a timeout being treated as a failure.
+</Note>
+
+---
+
+## DELETE /webhooks/\{id\}
+
+Deregisters an existing webhook and immediately stops all future deliveries to its URL.
+
+Pass the webhook `id` returned at registration time (e.g., `wh_7xpq`) as the path parameter. A successful deregistration returns a `204 No Content` response with an empty body.
+
+```bash
+curl -X DELETE \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  https://api.google.com/v1/webhooks/wh_7xpq
+```

@@ -1,0 +1,98 @@
+---
+title: "Authenticate with the Google Media API Using API Keys"
+sidebarTitle: "认证"
+description: "Learn how to generate your Google Media API key, pass it in request headers, handle authentication errors, and rotate keys for security."
+---
+
+The Google Media API uses API key authentication. All requests must include a valid API key in the `Authorization` header — requests made without a key, or with an expired or invalid key, will be rejected with a `401` response. Keep your key secure and never expose it in client-side or publicly accessible code.
+
+## 获取 API Key
+
+在您可以调用任何 API 端点之前，需要先从开发者控制台生成一个 API 密钥：
+
+<Steps>
+  <Step title="登录您的账户">
+    访问 [google.com](https://www.google.com) 并使用您的 Enterprise 账户凭据登录。
+  </Step>
+  <Step title="打开开发者设置">
+    导航至 **Account（账户）> 开发者设置 > API 密钥**。
+  </Step>
+  <Step title="生成新密钥">
+    点击 **"生成新密钥"** 按钮。系统将提示您为密钥命名，以便日后识别（例如：`production-app`）。
+  </Step>
+  <Step title="立即复制密钥">
+    密钥生成后**仅显示一次**。请立即复制并妥善保存——关闭对话框后将无法再次查看完整密钥。
+  </Step>
+  <Step title="安全存储密钥">
+    将密钥保存在环境变量或安全的密钥管理服务中（例如：AWS Secrets Manager、HashiCorp Vault）。切勿将其硬编码在源代码中。
+  </Step>
+</Steps>
+
+## 在请求中使用 API Key
+
+所有请求都需要在 HTTP 请求头中传递 `Authorization` 字段，格式为 `Bearer` 后接您的 API 密钥。以下示例展示了如何在常见环境中发起认证请求：
+
+<CodeGroup>
+
+```bash cURL
+curl -H "Authorization: Bearer YOUR_API_KEY" \
+     https://api.google.com/v1/articles
+```
+
+```python Python
+import requests
+
+headers = {"Authorization": "Bearer YOUR_API_KEY"}
+response = requests.get("https://api.google.com/v1/articles", headers=headers)
+print(response.json())
+```
+
+```javascript JavaScript
+const response = await fetch('https://api.google.com/v1/articles', {
+  headers: {
+    'Authorization': 'Bearer YOUR_API_KEY'
+  }
+});
+const data = await response.json();
+```
+
+</CodeGroup>
+
+<Tip>
+  建议将 `YOUR_API_KEY` 替换为对环境变量的引用，例如 Python 中的 `os.environ["GOOGLE_MEDIA_API_KEY"]` 或 Node.js 中的 `process.env.GOOGLE_MEDIA_API_KEY`。
+</Tip>
+
+## 认证错误
+
+当认证失败时，API 将返回以下错误之一：
+
+| HTTP 状态码 | 原因 | 解决方法 |
+|------------|------|---------|
+| `401 Unauthorized` | API 密钥缺失、格式错误或已失效 | 检查请求头是否正确包含 `Authorization: Bearer {key}`，并确认密钥仍然有效 |
+| `403 Forbidden` | 密钥有效，但您的订阅计划无权访问此资源 | 确认您的账户已激活 Enterprise 订阅，或联系支持团队了解权限详情 |
+
+## 密钥轮换
+
+定期轮换 API 密钥是保障安全的重要实践。请遵循以下**零停机轮换**流程，确保应用在切换过程中不中断服务：
+
+1. **生成新密钥**：在开发者控制台中创建新的 API 密钥，为其设置有意义的名称（如 `production-app-v2`）。
+2. **更新应用配置**：将应用中的环境变量或密钥管理服务更新为新密钥，并完成部署和验证。
+3. **确认新密钥正常工作**：监控日志，确保所有请求均使用新密钥成功完成认证。
+4. **吊销旧密钥**：在控制台中找到旧密钥，点击"吊销"将其永久禁用。
+
+<Info>
+  建议每 90 天轮换一次 API 密钥，或在团队成员离职、密钥疑似泄露时立即执行轮换。
+</Info>
+
+## 密钥安全最佳实践
+
+妥善管理 API 密钥可以有效降低数据泄露和未授权访问的风险：
+
+- **不要将密钥提交到版本控制系统**：在 `.gitignore` 中排除包含密钥的配置文件，并使用 git-secrets 等工具扫描历史提交记录。
+- **使用环境变量**：通过 `GOOGLE_MEDIA_API_KEY` 等环境变量注入密钥，避免硬编码。
+- **设置密钥有效期**：在控制台中为密钥配置过期时间，强制定期轮换。
+- **监控使用异常**：定期查看 API 使用报告，关注非预期的请求来源、异常的调用频率或时段，及时发现潜在的密钥泄露。
+
+<Warning>
+  **切勿**在客户端代码（如浏览器端 JavaScript）、公开的代码仓库或移动应用的打包产物中暴露您的 API 密钥。一旦密钥泄露，攻击者可以以您的名义消耗配额或访问受限数据。请立即吊销任何已暴露的密钥。
+</Warning>

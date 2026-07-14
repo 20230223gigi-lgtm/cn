@@ -1,13 +1,11 @@
 {
-  "$schema": "https://mintlify.com/docs.json",
+  "projectType": "saas",
+  "projectName": "Google Media",
+  "projectDescription": "A trusted international media platform bridging China and the world, delivering first-hand news and real-time information to readers at home and abroad.",
   "theme": "almond",
-  "name": "Google Media",
-  "colors": {
-    "primary": "#ef7025",
-    "light": "#eec9bc",
-    "dark": "#4fa1ab"
-  },
-  "favicon": "/favicon.svg",
+  "primaryColor": "#ef7025",
+  "lightColor": "#eec9bc",
+  "darkColor": "#4fa1ab",
   "navigation": {
     "tabs": [
       {
@@ -79,14 +77,22 @@
       }
     ]
   },
-  "navbar": {
-    "primary": {
-      "type": "button",
-      "label": "立即阅读",
-      "href": "https://www.google.com"
-    }
-  },
-  "footer": {
-    "socials": {}
-  }
+  "keyFeatures": [
+    "实时中国与国际新闻报道",
+    "多分类内容频道（政治、经济、文化、科技等）",
+    "中英文双语内容支持",
+    "订阅制新闻推送与电子报",
+    "全文搜索与个性化推荐",
+    "移动端与桌面端全平台支持",
+    "新闻提醒与通知推送",
+    "内容收藏与阅读历史"
+  ],
+  "publicApiSurface": [
+    "GET /api/v1/articles — 获取文章列表",
+    "GET /api/v1/articles/{id} — 获取单篇文章",
+    "GET /api/v1/categories — 获取分类列表",
+    "GET /api/v1/search?q={query} — 全文搜索",
+    "POST /api/v1/webhooks — 注册内容推送 Webhook",
+    "GET /api/v1/feed — 获取个性化内容流"
+  ]
 }

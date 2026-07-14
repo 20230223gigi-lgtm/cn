@@ -1,0 +1,166 @@
+---
+title: "Articles API: Retrieve and Display Google Media Content"
+sidebarTitle: "文章端点"
+description: "REST API reference for Google Media articles. GET /articles lists articles with pagination and filters; GET /articles/{id} retrieves a single article with full content."
+---
+
+The articles endpoints are the core of the Google Media API, giving you access to the full article catalog with filtering, pagination, and rich metadata. Use these endpoints to build news feeds, article detail pages, and content discovery features powered by Google Media's publishing platform.
+
+## GET /articles
+
+Returns a paginated list of articles. Supports filtering by category, language, date range, and more.
+
+<ParamField query="page" type="integer" default={1}>
+  Page number for paginated results.
+</ParamField>
+
+<ParamField query="per_page" type="integer" default={20}>
+  Number of articles to return per page. Maximum value is `100`.
+</ParamField>
+
+<ParamField query="category" type="string">
+  Filter results by category slug (e.g., `finance`, `politics`). Use the [Categories API](/api/categories) to retrieve a full list of valid slugs.
+</ParamField>
+
+<ParamField query="language" type="string">
+  Filter articles by language. Accepted values: `zh-CN`, `zh-TW`, or `en`.
+</ParamField>
+
+<ParamField query="date_from" type="string">
+  Return articles published on or after this date. Must be an ISO 8601 date string, e.g. `2024-01-01`.
+</ParamField>
+
+<ParamField query="date_to" type="string">
+  Return articles published on or before this date. Must be an ISO 8601 date string, e.g. `2024-12-31`.
+</ParamField>
+
+<ParamField query="featured" type="boolean">
+  When set to `true`, returns only featured or top-story articles.
+</ParamField>
+
+### Example request
+
+```bash
+curl -H "Authorization: Bearer YOUR_API_KEY" \
+  "https://api.google.com/v1/articles?category=finance&language=zh-CN&per_page=10"
+```
+
+### Example response
+
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "id": "art_01hx9f2k3m",
+      "title": "全球经济展望：2024年下半年关键指标分析",
+      "summary": "国际货币基金组织最新报告显示...",
+      "author": { "id": "aut_2b3c", "name": "张明" },
+      "category": { "slug": "finance", "label": "财经" },
+      "language": "zh-CN",
+      "published_at": "2024-06-15T08:30:00Z",
+      "url": "https://www.google.com/articles/art_01hx9f2k3m",
+      "is_premium": false,
+      "thumbnail": "https://cdn.google.com/images/art_01hx9f2k3m.jpg"
+    }
+  ],
+  "meta": { "page": 1, "per_page": 10, "total": 3841 }
+}
+```
+
+---
+
+## GET /articles/\{id\}
+
+Returns a single article with its full body content, author details, tags, and related article references.
+
+<ParamField path="id" type="string" required>
+  The unique identifier of the article to retrieve (e.g., `art_01hx9f2k3m`).
+</ParamField>
+
+### Example request
+
+```bash
+curl -H "Authorization: Bearer YOUR_API_KEY" \
+  "https://api.google.com/v1/articles/art_01hx9f2k3m"
+```
+
+### Example response
+
+```json
+{
+  "status": "success",
+  "data": {
+    "id": "art_01hx9f2k3m",
+    "title": "全球经济展望：2024年下半年关键指标分析",
+    "body": "<p>国际货币基金组织最新报告显示...</p>",
+    "author": { "id": "aut_2b3c", "name": "张明", "bio": "资深财经记者" },
+    "category": { "slug": "finance", "label": "财经" },
+    "tags": ["经济", "IMF", "全球"],
+    "language": "zh-CN",
+    "published_at": "2024-06-15T08:30:00Z",
+    "updated_at": "2024-06-15T10:15:00Z",
+    "is_premium": false,
+    "related_articles": ["art_02jy", "art_03kz"]
+  }
+}
+```
+
+### Response fields
+
+<ResponseField name="id" type="string">
+  Unique article identifier.
+</ResponseField>
+
+<ResponseField name="title" type="string">
+  Article headline.
+</ResponseField>
+
+<ResponseField name="body" type="string">
+  Full HTML article body. For premium articles, returns a 150-word preview unless your API key has Enterprise access. See the note below for details.
+</ResponseField>
+
+<ResponseField name="author" type="object">
+  <Expandable title="author fields">
+    <ResponseField name="id" type="string">
+      Unique author identifier.
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      Author display name.
+    </ResponseField>
+    <ResponseField name="bio" type="string">
+      Short author biography.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="category" type="object">
+  <Expandable title="category fields">
+    <ResponseField name="slug" type="string">
+      Category identifier, usable as a filter in `/articles` queries.
+    </ResponseField>
+    <ResponseField name="label" type="string">
+      Localized category display name.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="tags" type="array">
+  List of content tags associated with the article.
+</ResponseField>
+
+<ResponseField name="language" type="string">
+  Content language code (`zh-CN`, `zh-TW`, or `en`).
+</ResponseField>
+
+<ResponseField name="published_at" type="string">
+  ISO 8601 timestamp of when the article was first published.
+</ResponseField>
+
+<ResponseField name="is_premium" type="boolean">
+  Indicates whether a Premium subscription is required to access the full article body.
+</ResponseField>
+
+<Note>
+  The `body` field returns the complete HTML content for non-premium articles. For articles where `is_premium` is `true`, the field returns a 150-word preview unless your API key is provisioned with Enterprise access. To upgrade your access tier, contact your Google Media account representative.
+</Note>
