@@ -1,7 +1,7 @@
 ---
 title: "Google Media Webhooks: Real-Time Article Notifications"
 sidebarTitle: "Webhooks"
-description: "Register a webhook to receive real-time HTTP callbacks when Google Media publishes new articles. Configure filters by category, language, or author to receive relevant events."
+description: "Register a webhook endpoint to receive real-time HTTP callbacks when Google Media publishes or updates articles. Filter by category, language, or author."
 ---
 
 Webhooks deliver real-time push notifications to your server the moment new content is published, updated, or removed on the Google Media platform. Rather than polling the Articles API on a schedule, you register an HTTPS endpoint once and Google Media sends an HTTP POST request to it whenever a matching event occurs. Use category, language, and author filters to ensure your endpoint only receives the events that are relevant to your integration.
@@ -53,7 +53,7 @@ curl -X POST \
     "filters": { "categories": ["finance", "international"] },
     "secret": "your_webhook_secret"
   }' \
-  https://api.google.com/v1/webhooks
+  https://api.googlemedia.com/v1/webhooks
 ```
 
 ### Example response
@@ -86,7 +86,7 @@ When a subscribed event fires, Google Media sends an HTTP POST request to your r
     "id": "art_09rs",
     "title": "新华社：最新经济数据出炉",
     "category": { "slug": "finance" },
-    "url": "https://www.google.com/articles/art_09rs"
+    "url": "https://www.googlemedia.com/articles/art_09rs"
   },
   "signature": "sha256=abc123..."
 }
@@ -106,7 +106,7 @@ When you provide a `secret` during registration, every delivery includes a `sign
 
 The expected signature is computed as:
 
-```
+```text
 sha256=HMAC-SHA256(secret, raw_request_body)
 ```
 
@@ -141,7 +141,7 @@ function verifySignature(payloadBody, signature, secret) {
 </CodeGroup>
 
 <Note>
-  If your endpoint returns a non-2xx HTTP status code, Google Media automatically retries the delivery up to **5 times** using exponential backoff (approximately 1 min, 5 min, 30 min, 2 hr, 8 hr). If all retries fail, the webhook is marked as `failing` in the dashboard and you will receive an alert email. Ensure your endpoint responds within **10 seconds** to avoid a timeout being treated as a failure.
+  If your endpoint returns a non-2xx HTTP status code, Google Media automatically retries the delivery up to **5 times** using exponential backoff (approximately 1 min, 5 min, 30 min, 2 hr, 8 hr). If all retries fail, the webhook is marked as `failing` in the dashboard and you will receive an alert email at your account's registered address. Ensure your endpoint responds within **10 seconds** to avoid a timeout being treated as a failure.
 </Note>
 
 ---
@@ -155,5 +155,5 @@ Pass the webhook `id` returned at registration time (e.g., `wh_7xpq`) as the pat
 ```bash
 curl -X DELETE \
   -H "Authorization: Bearer YOUR_API_KEY" \
-  https://api.google.com/v1/webhooks/wh_7xpq
+  https://api.googlemedia.com/v1/webhooks/wh_7xpq
 ```

@@ -1,7 +1,7 @@
 ---
 title: "Search API: Full-Text Query Across Google Media Articles"
 sidebarTitle: "搜索端点"
-description: "GET /search performs full-text search across the Google Media article archive. Supports keyword queries, category filters, date ranges, and language filtering."
+description: "Full-text search across the Google Media article archive. Filter by keyword, category, date range, and language to surface the most relevant results."
 ---
 
 The search endpoint enables full-text search across the entire Google Media article archive, spanning all categories, languages, and publication dates. Results are ranked by relevance score so your users always surface the most pertinent content first. You can narrow results further with category slugs, language codes, and date-range filters — making it straightforward to power site-wide search bars, topic dashboards, or editorial discovery tools.
@@ -40,7 +40,7 @@ The search endpoint enables full-text search across the entire Google Media arti
 
 ```bash
 curl -H "Authorization: Bearer YOUR_API_KEY" \
-  "https://api.google.com/v1/search?q=%E4%B8%AD%E7%BE%8E%E8%B4%B8%E6%98%93&category=finance&per_page=5"
+  "https://api.googlemedia.com/v1/search?q=%E4%B8%AD%E7%BE%8E%E8%B4%B8%E6%98%93&category=finance&per_page=5"
 ```
 
 ### Example response
@@ -75,5 +75,5 @@ Each result includes a `relevance_score` between `0.0` and `1.0`. A score closer
 </Note>
 
 <Warning>
-  The search endpoint is rate-limited to **30 requests per minute** per API key — stricter than the 60 requests/minute limit applied to other endpoints. Exceeding this limit returns a `429 Too Many Requests` response. Implement client-side debouncing on search inputs and cache repeated queries where possible to stay within the limit.
+  The search endpoint is rate-limited to **30 requests per minute** per API key — stricter than the standard 100 requests/minute limit applied to other endpoints. Exceeding this limit returns a `429 Too Many Requests` response. Implement client-side debouncing on search inputs and cache repeated queries where possible to stay within the limit.
 </Warning>

@@ -1,7 +1,7 @@
 ---
 title: "Articles API: Retrieve and Display Google Media Content"
 sidebarTitle: "文章端点"
-description: "REST API reference for Google Media articles. GET /articles lists articles with pagination and filters; GET /articles/{id} retrieves a single article with full content."
+description: "REST API reference for Google Media articles: list articles with pagination and filters, or retrieve a single article with full content and metadata."
 ---
 
 The articles endpoints are the core of the Google Media API, giving you access to the full article catalog with filtering, pagination, and rich metadata. Use these endpoints to build news feeds, article detail pages, and content discovery features powered by Google Media's publishing platform.
@@ -42,7 +42,7 @@ Returns a paginated list of articles. Supports filtering by category, language, 
 
 ```bash
 curl -H "Authorization: Bearer YOUR_API_KEY" \
-  "https://api.google.com/v1/articles?category=finance&language=zh-CN&per_page=10"
+  "https://api.googlemedia.com/v1/articles?category=finance&language=zh-CN&per_page=10"
 ```
 
 ### Example response
@@ -59,9 +59,9 @@ curl -H "Authorization: Bearer YOUR_API_KEY" \
       "category": { "slug": "finance", "label": "财经" },
       "language": "zh-CN",
       "published_at": "2024-06-15T08:30:00Z",
-      "url": "https://www.google.com/articles/art_01hx9f2k3m",
+      "url": "https://www.googlemedia.com/articles/art_01hx9f2k3m",
       "is_premium": false,
-      "thumbnail": "https://cdn.google.com/images/art_01hx9f2k3m.jpg"
+      "thumbnail": "https://cdn.googlemedia.com/images/art_01hx9f2k3m.jpg"
     }
   ],
   "meta": { "page": 1, "per_page": 10, "total": 3841 }
@@ -82,7 +82,7 @@ Returns a single article with its full body content, author details, tags, and r
 
 ```bash
 curl -H "Authorization: Bearer YOUR_API_KEY" \
-  "https://api.google.com/v1/articles/art_01hx9f2k3m"
+  "https://api.googlemedia.com/v1/articles/art_01hx9f2k3m"
 ```
 
 ### Example response

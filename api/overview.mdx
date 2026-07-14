@@ -1,18 +1,18 @@
 ---
 title: "Google Media API: Integrate World-Class News Content"
 sidebarTitle: "API 概览"
-description: "The Google Media REST API gives developers programmatic access to articles, categories, and search. Available to Enterprise subscribers with JSON responses."
+description: "Google Media REST API: access articles, categories, search, and personalized feeds. Available to Enterprise subscribers; all responses are JSON."
 ---
 
-The Google Media API provides programmatic access to the platform's news content, enabling developers to integrate articles, categories, and real-time feeds into their own applications. All endpoints follow REST conventions and return structured JSON responses, making it straightforward to build news-powered features regardless of your technology stack.
+The Google Media API provides programmatic access to the platform's news content, enabling you to integrate articles, categories, and real-time feeds into your own applications. All endpoints follow REST conventions and return structured JSON responses, making it straightforward to build news-powered features regardless of your technology stack.
 
 ## API 基本信息
 
 在开始集成之前，请了解以下关键参数：
 
 | 参数 | 值 |
-|------|----|
-| Base URL | `https://api.google.com/v1` |
+|------|-----|
+| Base URL | `https://api.googlemedia.com/v1` |
 | 协议 | HTTPS only |
 | 响应格式 | JSON |
 | 标准速率限制 | 100 requests/minute |
@@ -29,12 +29,51 @@ The Google Media API provides programmatic access to the platform's news content
 
 | 端点 | 方法 | 描述 |
 |------|------|------|
-| `/articles` | `GET` | Retrieve paginated article list |
-| `/articles/{id}` | `GET` | Retrieve a single article by ID |
-| `/categories` | `GET` | List all categories |
-| `/search` | `GET` | Full-text search across articles |
-| `/feed` | `GET` | Get personalized article feed |
-| `/webhooks` | `POST` | Register a webhook endpoint |
+| `/api/v1/articles` | `GET` | Retrieve paginated article list |
+| `/api/v1/articles/{id}` | `GET` | Retrieve a single article by ID |
+| `/api/v1/categories` | `GET` | List all categories |
+| `/api/v1/search` | `GET` | Full-text search across articles |
+| `/api/v1/feed` | `GET` | Get personalized article feed |
+| `/api/v1/webhooks` | `POST` | Register a webhook endpoint |
+
+## GET /api/v1/feed
+
+The feed endpoint returns a personalized stream of articles ranked for a given API key based on usage signals, subscribed categories, and preferred languages. Use this endpoint to power homepage feeds, recommendation widgets, or personalized digest emails.
+
+### Query parameters
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `language` | string | — | Filter feed articles by language: `zh-CN`, `zh-TW`, or `en`. |
+| `page` | integer | `1` | Page number for paginated results. |
+| `per_page` | integer | `20` | Number of articles per page. Maximum value is `100`. |
+
+### Example request
+
+```bash
+curl -H "Authorization: Bearer YOUR_API_KEY" \
+  "https://api.googlemedia.com/v1/feed?language=zh-CN&per_page=5"
+```
+
+### Example response
+
+```json
+{
+  "status": "success",
+  "data": [
+    {
+      "id": "art_11ab",
+      "title": "今日要闻：全球科技峰会开幕",
+      "summary": "来自50个国家的代表齐聚日内瓦...",
+      "category": { "slug": "tech", "label": "科技" },
+      "language": "zh-CN",
+      "published_at": "2024-06-16T07:00:00Z",
+      "is_premium": false
+    }
+  ],
+  "meta": { "page": 1, "per_page": 5, "total": 280 }
+}
+```
 
 ## 请求格式
 
